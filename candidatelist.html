@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Candidate Voting</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f9fafb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            max-width: 480px;
+            width: 95%;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .candidate-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .candidate-item {
+            background: #f5f7fa;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .candidate-item:hover {
+            background: #e1e6f9;
+        }
+
+        .candidate-item.selected {
+            background: #3b82f6;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .candidate-radio {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+            accent-color: #2563eb;
+            cursor: pointer;
+        }
+
+        .candidate-name {
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            background-color: #2563eb;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Vote for Your Candidate</h1>
+        <ul class="candidate-list" id="candidateList">
+            <!-- Candidates will be inserted here by JavaScript -->
+        </ul>
+        <button id="voteButton" disabled>Place Vote</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const candidates = [
+            { id: 1, name: 'Alice Johnson' },
+            { id: 2, name: 'Bob Smith' },
+            { id: 3, name: 'Carol Lee' },
+            { id: 4, name: 'David Kim' }
+        ];
+
+        const candidateListEl = document.getElementById('candidateList');
+        const voteButton = document.getElementById('voteButton');
+        const messageEl = document.getElementById('message');
+
+        let selectedCandidateId = null;
+
+        function renderCandidates() {
+            candidateListEl.innerHTML = '';
+            candidates.forEach(candidate => {
+                const li = document.createElement('li');
+                li.className = 'candidate-item';
+                li.dataset.id = candidate.id;
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'candidate';
+                radio.className = 'candidate-radio';
+                radio.id = 'candidate-' + candidate.id;
+                radio.value = candidate.id;
+
+                const label = document.createElement('label');
+                label.htmlFor = 'candidate-' + candidate.id;
+                label.className = 'candidate-name';
+                label.textContent = candidate.name;
+
+                li.appendChild(radio);
+                li.appendChild(label);
+
+                li.addEventListener('click', () => {
+                    selectCandidate(candidate.id);
+                });
+
+                candidateListEl.appendChild(li);
+            });
+        }
+
+        function selectCandidate(id) {
+            selectedCandidateId = id;
+            const items = document.querySelectorAll('.candidate-item');
+            items.forEach(item => {
+                if (parseInt(item.dataset.id) === id) {
+                    item.classList.add('selected');
+                    item.querySelector('input').checked = true;
+                } else {
+                    item.classList.remove('selected');
+                    item.querySelector('input').checked = false;
+                }
+            });
+            voteButton.disabled = false;
+            messageEl.textContent = '';
+        }
+
+        voteButton.addEventListener('click', () => {
+            if (selectedCandidateId === null) return;
+            const candidate = candidates.find(c => c.id === selectedCandidateId);
+            messageEl.textContent = `You have successfully voted for ${candidate.name}. Thank you!`;
+            voteButton.disabled = true;
+        });
+
+        renderCandidates();
+    </script>
+</body>
+
+</html>

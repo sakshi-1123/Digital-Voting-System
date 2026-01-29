@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Voting System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            background-color: blue;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        main {
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 100px);
+        }
+
+        .content {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+
+        .image-container {
+            flex: 2;
+            text-align: right;
+        }
+
+        .options {
+            flex: 1;
+            padding-left: 200px;
+        }
+
+        button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: rgb(122, 168, 199);
+        }
+
+        #formSection,
+        #resultSection,
+        #voterListSection {
+            margin-top: 20px;
+        }
+
+        select,
+        input {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Welcome to the Digital Voting System</h1>
+    </header>
+    <main>
+        <div class="content">
+            <div class="image-container">
+                <img src="vote.jfif" alt="Voting Image" width="550" />
+            </div>
+            <div class="options">
+                <h2>Choose an Option</h2>
+                <button onclick="loadVoters()">Voters list</button>
+                <button onclick="showVoteForm()">Login to Vote</button>
+                <button onclick="loadResults()">View Results</button>
+
+                <!-- Voter List Section -->
+                <div id="voterListSection"></div>
+
+                <!-- Voting Form -->
+                <div id="formSection" style="display:none;">
+                    <h3>Vote Here</h3>
+                    <input type="text" id="voterId" placeholder="Voter ID" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <select id="candidateSelect" required></select>
+                    <button onclick="submitVote()">Submit Vote</button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="resultSection"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Load voters
+        async function loadVoters() {
+            const res = await fetch("http://localhost/127.0.0.1/voter_list/voter/voters");
+            const data = await res.json();
+            const section = document.getElementById("voterListSection");
+            section.innerHTML = "<h3>Voters List:</h3><ul>" +
+                data.map(v => `<li>ID: ${v.id}, Name: ${v.name}, Has Voted: ${v.has_voted}</li>`).join('') +
+                "</ul>";
+        }
+
+        // Show vote form
+        async function showVoteForm() {
+            document.getElementById("formSection").style.display = "block";
+            const res = await fetch("http://localhost/127.0.0.1/voter_list/voter/candidates");
+            const candidates = await res.json();
+            const select = document.getElementById("candidateSelect");
+            select.innerHTML = `<option value="">Select a Candidate</option>` +
+                candidates.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        // Submit vote
+        async function submitVote() {
+            const voterId = document.getElementById("voterId").value;
+            const password = document.getElementById("password").value;
+            const candidateId = document.getElementById("candidateSelect").value;
+
+            const res = await fetch("http://localhost/127.0.01/voter_list/voter/vote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ voterId, password, candidateId })
+            });
+
+            const result = await res.text();
+            alert(result);
+        }
+
+        // Load results
+        async function loadResults() {
+            const res = await fetch("http://localhost/127.0.01/voter_list/voter/results");
+            const data = await res.json();
+            const section = document.getElementById("resultSection");
+            section.innerHTML = "<h3>Election Results:</h3><ul>" +
+                data.map(r => `<li>${r.name}: ${r.votes} votes</li>`).join('') +
+                "</ul>";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+const express = require('express');
+const mysql = require('mysql');
+const app = express();
+const port = 3000;
+
+// Middleware to parse form data
+app.use(express.urlencoded({ extended: true }));
+
+// MySQL connection setup
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',       // change this if your MySQL username is different
+    password: '',       // set your MySQL password if needed
+    database: 'voter_list'  // change to your actual DB name
+});
+
+connection.connect((err) => {
+    if (err) {
+        console.error('Database connection failed:', err.stack);
+        return;
+    }
+    console.log('Connected to MySQL database.');
+});
+
+// ✅ Add this route after the DB connection and before app.listen()
+app.get('/voter_list/voters', (req, res) => {
+    connection.query('SELECT USN, NAME, SECTION, BRANCH FROM voters', (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results);
+    });
+});
+
+
+// Login to vote (Authenticate and mark as voted)
+app.post('/voter_list/candidates', async (req, res) => {
+    const { voterId, password, candidateId } = req.body;
+    db.query('SELECT * FROM voters WHERE id = ?', [voterId], async (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(401).send('Voter not found');
+
+        const voter = results[0];
+        const match = await bcrypt.compare(password, voter.password);
+        if (!match) return res.status(401).send('Incorrect password');
+        if (voter.has_voted) return res.status(403).send('Already voted');
+
+        // Cast vote
+        db.query('UPDATE voters SET has_voted = 1 WHERE id = ?', [voterId]);
+        db.query('UPDATE candidates SET votes = votes + 1 WHERE id = ?', [candidateNAME]);
+        res.send('Vote cast successfully');
+    });
+});
+
+// Home route
+app.get('/', (req, res) => {
+    res.send('Server and Database connected successfully!');
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost/127.0.0.1:3306/voter_list/voter`);
+});
+app.listen(port, () => {
+    console.log(`Server is running at http://localhost/127.0.0.1:3306/voter_list/candidates`);
+});

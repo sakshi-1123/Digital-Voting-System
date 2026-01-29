@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Voting System</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #f9f9f9;
+            /* Light background for the body */
+        }
+
+        h1 {
+            background-color: #007BFF;
+            /* Blue background for header */
+            color: white;
+            /* White text color */
+            padding: 15px;
+            /* Padding around text */
+            margin: 0;
+            /* Remove default margins */
+        }
+
+        .button {
+            background-color: #28a745;
+            /* Green button background */
+            color: white;
+            /* White text color */
+            padding: 10px 20px;
+            /* Padding for buttons */
+            border: none;
+            /* No border */
+            border-radius: 5px;
+            /* Rounded corners */
+            cursor: pointer;
+            /* Pointer cursor on hover */
+            margin: 5px;
+            /* Margin around buttons */
+        }
+
+        .button:hover {
+            background-color: #218838;
+            /* Darker green on hover */
+        }
+
+        img {
+            margin: 40px 0;
+            /* Margin above and below the image */
+            width: 300px;
+            /* Set a width for the image */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome to the Digital Voting System</h1>
+    <img src="vote.jfif" alt="Voting Image"> <!-- Add your image URL -->
+    </div>
+    <div class="options">
+        <h2>Choose an Option</h2>
+        <button onclick="loadVoters()">Voters List</button>
+        <div id="voterListSection"></div>
+
+        <button onclick="showVoteForm()">Login to vote</button>
+        <div id="formSection" style="display:none;">
+            <h3>Vote Here</h3>
+            <input type="text" id="voterId" placeholder="Voter ID" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <select id="candidateSelect" required></select>
+            <button onclick="submitVote()">Submit Vote</button>
+        </div>
+        <button>View Results</button>
+    </div>
+    </div>
+    </main>
+
+
+    <script>
+        async function loadVoters() {
+            try {
+                const res = await fetch("http://localhost:3000/voter_list/voters");
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                const voters = await res.json();
+
+                const container = document.getElementById("voterListSection");
+                container.innerHTML = `
+        <h3>Voters List</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>USN</th>
+                    <th>Name</th>
+                    <th>Section</th>
+                    <th>Branch</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${voters.map(v => `
+                    <tr>
+                        <td>${v.USN}</td>
+                        <td>${v.NAME}</td>
+                        <td>${v.SECTION}</td>
+                        <td>${v.BRANCH}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+            } catch (err) {
+                console.error(err);
+                alert("Could not load voters: " + err.message);
+            }
+        }
+
+        async function showVoteForm() {
+            document.getElementById("formSection").style.display = "block";
+            try {
+                const res = await fetch("http://localhost:3000/voter_list/candidates"); // ✅ Fixed
+                const candidates = await res.json();
+                const select = document.getElementById("candidateSelect");
+                select.innerHTML = `<option value="">Select a Candidate</option>` +
+                    candidates.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+                // Optional: Display candidates in table
+                const tableHTML = `
+    <h4>Candidate List</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>name</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${candidates.map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.name || '-'}</td> <!-- optional field -->
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+`;
+
+                const formSection = document.getElementById("formSection");
+                formSection.insertAdjacentHTML("beforeend", tableHTML);
+
+            } catch (err) {
+                console.error(err);
+                alert("Could not load candidates: " + err.message);
+            }
+        }
+
+        async function submitVote() {
+            const voterId = document.getElementById("voterId").value;
+            const password = document.getElementById("password").value;
+            const candidateId = document.getElementById("candidateSelect").value;
+
+            try {
+                const res = await fetch("http://localhost:3000/voter_list/vote", { // ✅ Fixed
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ voterId, password, candidateId })
+                });
+
+                const result = await res.text();
+                alert(result);
+            } catch (err) {
+                console.error(err);
+                alert("Vote failed: " + err.message);
+            }
+        }
+    </script>
+</body>
+
+</html>
